@@ -1,15 +1,20 @@
 # TIMER A Blink
-The TIMER peripherals can be used in many situations thanks to it flexibility in features. For this lab, you will be only scratching the surface as to what this peripheral can do. 
-
-## Up, Down, Continuous 
-There are a few different ways that the timer module can count. For starters, one of the easiest to initialize is Continuous counting where in the TIMER module will alert you when its own counting register overflows. Up mode allows you to utilize a Capture/Compare register to have the counter stop at a particular count and then start back over again. You can also set the TIMER to Up/Down mode where upon hitting a counter or the overflow, instead of setting the counter back to zero, it will count back down to zero. 
-
-## Task
-Using the TIMER module instead of a software loop, control the speed of two LEDS blinking on your development boards. Experiment with the different counting modes available as well as the effect of the pre-dividers. Why would you ever want to use a pre-divider? What about the Capture and Compare registers? Your code should include a function (if you want, place it in its own .c and .h files) which can convert a desired Hz into the proper values required to operate the TIMER modules.
-
-### Extra Work
-#### Thinking with HALs
-So maybe up to this point you have noticed that your software is looking pretty damn similar to each other for each one of these boards. What if there was a way to abstract away all of the particulars for a processor and use the same functional C code for each board? Just for this simple problem, why don't you try and build a "config.h" file which using IFDEF statements can check to see what processor is on board and initialize particular registers based on that.
-
-#### Low Power Timers
-Since you should have already done a little with interrupts, why not build this system up using interrupts and when the processor is basically doing nothing other than burning clock cycles, drop it into a Low Power mode. Do a little research and figure out what some of these low power modes actually do to the processor, then try and use them in your code. If you really want to put your code to the test, using the MSP430FR5994 and the built in super cap, try and get your code to run for the longest amount of time only using that capacitor as your power source.
+In this code, The timer A peripheral was utilized to blink the led at a user set rate
+in the code. First, the inputs and outputs were set up as normal for the LED, exactly 
+the same as if blinking an LED using a loop or a button. Next, instead of a loop, the
+Timer A peripheral was initialized, and set into continuous counting mode. Before
+initializing the A clock, the line of code BCSCTL3 = LFXT1S_2; was used to set the 
+internal oscillator of the MSP430G2553 as A clock, which has a frequency of 1.2 MHz.
+This code was not needed for the F5529 due to the A clock already using the internal
+oscillator by default. Interrupts were enabled on timer A0 by setting the TACCTL0
+register to CCIE. This was the same for the 5529, except the register name was TA0CCTL
+instead. Next, the value where the interrupt occurs was set by setting register 
+TACCR0 to 12000, which would cause the LED to blink at approximately 1 Hz. Similar to 
+enabling interrupt, the register for the 5529 was TA0CCR0 instead. Finally, Timer A was 
+then set to Continous mode for both codes, which has the timer count from zero to 0FFFFh,
+by setting register TACTL to TASSEL_1, which selects timer A, OR'ed with MC_1, which sets
+the timer to continuous mode. For the F5529, it was register TACTL0 that was set, while
+the code to set the timer reamined the same. Once the timer was set up, the ISR for timer
+A0 was set up using the vector TIMER0_A0_VECTOR, which was the same for both boards, and
+inside the ISR, P1OUT was XOR'ed with 0x01, which toggles the LED on and off whenever the
+counter counts to 12000.
